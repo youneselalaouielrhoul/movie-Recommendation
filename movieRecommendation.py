@@ -7,7 +7,7 @@ import os
 
 app = Flask(__name__)
 
-# absolute path to use the "tmdb-movies.csv" file
+# absolute path to use the "tmdb-movies.csv" file 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 file_path = os.path.join(script_dir, 'tmdb-movies.csv')
 df = pd.read_csv(file_path)
@@ -80,3 +80,4 @@ def search():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
