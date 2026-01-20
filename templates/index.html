@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Recommendation System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>Movie<span>Recommender</span></h1>
+            <p class="subtitle">Discover your next favorite movie</p>
+        </header>
+
+        <section class="search-container">
+            <form action="/" method="POST" autocomplete="off" id="searchForm">
+                <div class="search-box">
+                    <input type="text" id="movieInput" name="movie" placeholder="Type a movie name..."
+                        value="{{ movie_title }}">
+                    <button type="submit">Recommend</button>
+                    <div id="autocomplete-list" class="autocomplete-items"></div>
+                </div>
+            </form>
+        </section>
+
+        {% if error %}
+        <div class="error-message">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        {% if recommendations %}
+        <section class="results-section">
+            <h2>Recommended for You</h2>
+            <div class="movies-grid">
+                {% for movie in recommendations %}
+                <div class="movie-card">
+                    <span class="movie-title">{{ movie }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+    </div>
+
+    <script>
+        const input = document.getElementById("movieInput");
+        const list = document.getElementById("autocomplete-list");
+        let currentFocus = -1;
+
+        input.addEventListener("input", function (e) {
+            const val = this.value;
+            closeAllLists();
+            if (!val) { return false; }
+            currentFocus = -1;
+
+            fetch(`/search?q=${encodeURIComponent(val)}`)
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(item => {
+                        const div = document.createElement("div");
+                        // Highlight matching part
+                        const regex = new RegExp(`(${val})`, "gi");
+                        const itemHtml = item.replace(regex, "<strong>$1</strong>");
+
+                        div.innerHTML = itemHtml;
+                        div.innerHTML += `<input type='hidden' value='${item}'>`;
+
+                        div.addEventListener("click", function (e) {
+                            input.value = this.getElementsByTagName("input")[0].value;
+                            closeAllLists();
+                        });
+                        list.appendChild(div);
+                    });
+                });
+        });
+
+        input.addEventListener("keydown", function (e) {
+            let x = document.getElementById("autocomplete-list");
+            if (x) x = x.getElementsByTagName("div");
+            if (e.keyCode == 40) { // DOWN
+                currentFocus++;
+                addActive(x);
+            } else if (e.keyCode == 38) { // UP
+                currentFocus--;
+                addActive(x);
+            } else if (e.keyCode == 13) { // ENTER
+                if (currentFocus > -1) {
+                    if (x) x[currentFocus].click();
+                }
+            }
+        });
+
+        function addActive(x) {
+            if (!x) return false;
+            removeActive(x);
+            if (currentFocus >= x.length) currentFocus = 0;
+            if (currentFocus < 0) currentFocus = (x.length - 1);
+            x[currentFocus].classList.add("autocomplete-active");
+            // Scroll to view
+            x[currentFocus].scrollIntoView({ block: 'nearest' });
+        }
+
+        function removeActive(x) {
+            for (let i = 0; i < x.length; i++) {
+                x[i].classList.remove("autocomplete-active");
+            }
+        }
+
+        function closeAllLists(elmnt) {
+            const x = document.getElementsByClassName("autocomplete-items");
+            for (let i = 0; i < x.length; i++) {
+                if (elmnt != x[i] && elmnt != input) {
+                    x[i].innerHTML = '';
+                }
+            }
+        }
+
+        document.addEventListener("click", function (e) {
+            closeAllLists(e.target);
+        });
+    </script>
+</body>
+
+</html>
