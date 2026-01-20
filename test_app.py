@@ -8,18 +8,15 @@ def start_server():
     app.run(port=5000)
 
 def test_app():
-    # Start server in a separate thread
     thread = threading.Thread(target=start_server)
     thread.daemon = True
     thread.start()
     
-    # Give server a moment to start
     time.sleep(2)
     
     base_url = "http://127.0.0.1:5000"
     
     try:
-        # Test 1: Main page load
         print("Testing generic page load...")
         resp = requests.get(base_url)
         if resp.status_code == 200:
@@ -27,7 +24,6 @@ def test_app():
         else:
             print(f"FAIL: Main page returned {resp.status_code}")
 
-        # Test 2: Search API with lowercase
         print("\nTesting search API (lowercase)...")
         search_term = "star wa"
         resp = requests.get(f"{base_url}/search?q={search_term}")
@@ -41,9 +37,8 @@ def test_app():
         else:
             print(f"FAIL: Search API returned {resp.status_code}")
 
-        # Test 3: Recommendation (POST)
         print("\nTesting recommendation (lowercase input)...")
-        movie_name = "star wars: the force awakens" # Correct lowercase title
+        movie_name = "star wars: the force awakens"
         resp = requests.post(base_url, data={'movie': movie_name})
         if resp.status_code == 200 and "Recommended for You" in resp.text:
             print(f"PASS: Recommendation page loaded for '{movie_name}'.")
@@ -55,3 +50,4 @@ def test_app():
 
 if __name__ == "__main__":
     test_app()
+
